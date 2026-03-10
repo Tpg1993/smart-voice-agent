@@ -5,10 +5,12 @@ This Low Level Design specifies the microservices boundaries, API contracts, dat
 
 ## 2. Microservice Specifications
 
-### 2.1 Telephony Service (FastAPI)
-* **Purpose:** Handles integration with SIP providers (Twilio/Asterisk) executing on `app/api/routes.py`.
+### 2.1 Telephony & Authentication Service (FastAPI)
+* **Purpose:** Handles integration with SIP providers (Twilio/Asterisk) executing on `app/api/routes.py`, and secures control-plane REST APIs via JSON Web Tokens.
 * **Endpoints:**
+  * `POST /api/v1/auth/token`: Generates a JWT Bearer token using PyJWT & Passlib (Bcrypt).
   * `POST /api/v1/call/inbound`: Receives Webhook to initiate the streaming stream.
+  * `POST /api/v1/call/outbound`: Requires valid JWT Bearer Token. Triggers an automated outbound dial.
 * **Protocol:** Uses bidirectional WebSockets to stream chunk-based audio to the Engine.
 
 ### 2.2 Speech Translation Service (Sarvam AI wrapper)
@@ -33,12 +35,15 @@ This Low Level Design specifies the microservices boundaries, API contracts, dat
   * `def check_calendar_availability(business_id, date, service_type, industry)`
   * `def create_booking(business_id, caller_number, date, time, service, industry)`
 
-### 2.5 Audit & Post-Processing Worker (Python/Celery)
-* **Purpose:** Processes heavy offline jobs via Kafka consumer.
-* **Jobs:**
-  * **PII Redaction:** Runs regex/NER over transcript JSON, replacing card details and SSNs with `[REDACTED]`.
+### 2.5 Security & Post-Processing (Python/Celery)
+* **Purpose:** Handles synchronous Two-Way data anonymization and heavy offline jobs.
+* **Synchronous Flow (`app/core/security/pii_vault.py`):**
+  * **PIIScrubber:** Runs Regex/NER over raw STT transcripts in real-time. Detects Credit Cards (PCI), SSNs, and Emails.
+  * **PIIVault:** Replaces raw values with short-lived UUID keys (e.g. `[PII_TOKEN_XYZ]`). The LLM only ever sees Keys.
+  * **Restoration:** Restores keys to raw values right before executing local actions (e.g., sending payment payload to CRM).
+* **Asynchronous Jobs:**
   * **Summarization:** Calls a small LLM to generate a 3-bullet summary of the call.
-  * **Storage Commit:** Moves the final clean JSON and finalized `.MP3` blob to long-term storage (S3/PostgreSQL).
+  * **Storage Commit:** Moves the final clean JSON (with PII completely stripped permanently) and finalized `.MP3` blob to long-term storage (PostgreSQL).
 
 ## 3. Database Schema Models (PostgreSQL)
 

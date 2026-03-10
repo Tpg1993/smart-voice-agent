@@ -41,7 +41,26 @@ After Sarvam AI evaluates the intent, the system replies with the synthesized au
 
 ---
 
-## 2. Telephony API Webhooks
+## 2. API Authentication
+
+### `POST /api/v1/auth/token`
+**Description:** Exchanges valid admin credentials for a JWT Bearer Token. Required for triggering outbound calls and managing the backend system.
+* **Headers:** `Content-Type: application/x-www-form-urlencoded`
+* **Sample Request Body:**
+```text
+username=admin&password=secret123
+```
+* **Sample JSON Response (HTTP 200 OK):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsIn...",
+  "token_type": "bearer"
+}
+```
+
+---
+
+## 3. Telephony API Webhooks
 
 ### `POST /api/v1/call/inbound`
 **Description:** Triggered by the SIP provider (Twilio/Plivo/Asterisk) when a customer dials the business phone number. The endpoint must return the instructions (e.g., TwiML) telling the provider to connect the audio stream to our WebSocket.
@@ -66,7 +85,7 @@ CallSid=CA1234567890abcdef&From=+19876543210&To=+12345678900&CallStatus=ringing
 
 ### `POST /api/v1/call/outbound`
 **Description:** An internal endpoint triggered by the CRM or billing system to launch an outbound call (e.g., for a payment reminder).
-* **Headers:** `Content-Type: application/json`, `Authorization: Bearer <API_KEY>`
+* **Headers:** `Content-Type: application/json`, `Authorization: Bearer <YOUR_JWT_TOKEN>`
 
 * **Sample JSON Request:**
 ```json
@@ -86,14 +105,14 @@ CallSid=CA1234567890abcdef&From=+19876543210&To=+12345678900&CallStatus=ringing
 ```json
 {
   "status": "success",
-  "message": "Outbound call initiated",
-  "call_id": "CA9876543210fedcba"
+  "message": "Outbound call triggered for +19876543210",
+  "authorized_user": "admin"
 }
 ```
 
 ---
 
-## 3. Integrations & CRM Triggers (Mock Examples)
+## 4. Integrations & CRM Triggers (Mock Examples)
 
 These are the contracts the `services/integrations.py` folder will use to talk to external systems (or what external systems expose to the Voice Agent).
 
