@@ -1,12 +1,38 @@
 import base64
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from app.core.engine import ConversationEngine
 from app.services.speech import SpeechService
+from app.core.security.auth import Token, create_access_token, get_current_user, get_password_hash, verify_password
+from datetime import timedelta
 
 router = APIRouter()
 speech_service = SpeechService()
 engine = ConversationEngine()
+
+# Mock user database for JWT token demonstration
+fake_users_db = {
+    "admin": {
+        "username": "admin",
+        "hashed_password": get_password_hash("secret123"),
+    }
+}
+
+@router.post("/auth/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user_dict = fake_users_db.get(form_data.username)
+    if not user_dict:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    if not verify_password(form_data.password, user_dict["hashed_password"]):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": user_dict["username"]}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/call/inbound")
 async def handle_inbound_call(request: Request):
@@ -27,6 +53,22 @@ async def handle_inbound_call(request: Request):
     </Connect>
 </Response>"""
     return PlainTextResponse(content=xml_response, media_type="text/xml")
+
+@router.post("/call/outbound")
+async def trigger_outbound_call(request: Request, current_user: dict = Depends(get_current_user)):
+    """
+    Internal endpoint triggered by the CRM to out-dial a user.
+    PROTECTED: Requires a valid JWT Bearer token via the Authorization header.
+    """
+    form_data = await request.form()
+    customer_number = form_data.get("customer_number")
+    
+    # Trigger Telephony Edge API (e.g., Twilio Client) here
+    return {
+        "status": "success", 
+        "message": f"Outbound call triggered for {customer_number}", 
+        "authorized_user": current_user.username
+    }
 
 
 @router.websocket("/ws/stream-audio/{call_id}")
