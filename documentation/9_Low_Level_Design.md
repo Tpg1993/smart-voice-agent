@@ -5,37 +5,33 @@ This Low Level Design specifies the microservices boundaries, API contracts, dat
 
 ## 2. Microservice Specifications
 
-### 2.1 Telephony Service (Node.js/TypeScript)
-* **Purpose:** Handles integration with SIP providers (Twilio/Plivo).
+### 2.1 Telephony Service (FastAPI)
+* **Purpose:** Handles integration with SIP providers (Twilio/Asterisk) executing on `app/api/routes.py`.
 * **Endpoints:**
-  * `POST /api/v1/call/inbound`: Receives Twilio Webhook to initiate the TwiML stream.
-  * `POST /api/v1/call/outbound`: Initiated by internal Event Bus to trigger a call out.
-* **Protocol:** Uses bidirectional WebSockets to stream chunk-based audio to the Speech Service.
+  * `POST /api/v1/call/inbound`: Receives Webhook to initiate the streaming stream.
+* **Protocol:** Uses bidirectional WebSockets to stream chunk-based audio to the Engine.
 
-### 2.2 Speech Translation Service (Python/FastAPI)
+### 2.2 Speech Translation Service (Sarvam AI wrapper)
 * **Purpose:** The bridge layer between raw audio and text.
-* **Flow:**
-  * Ingests 16kHz raw audio buffers.
-  * Applies VAD (Voice Activity Detection - e.g., Silero VAD) to detect endpoints.
-  * Streams chunks to STT engine (e.g., Deepgram or Whisper API).
-  * Emits JSON payload `{ "transcript": "text", "confidence": 0.98, "language": "en" }` to the Core Logic Engine.
-  * Reverses flow: Takes text from Core Logic Engine, calls TTS provider (e.g., ElevenLabs/Azure), and returns binary audio frames.
+* **Flow (`app/services/speech.py`):**
+  * Ingests raw audio buffers from the WebSocket chunk.
+  * Streams chunks to Sarvam AI Indic-ASR engine.
+  * Reverses flow: Takes text from Core Logic Engine, calls Sarvam AI Indic-TTS provider, and returns binary audio frames.
 
-### 2.3 Core Logic Engine (Go or Python/Langchain)
-* **Purpose:** Evaluates prompts and manages the state machine of the conversation.
-* **Routing Logic Map:**
+### 2.3 Core Logic Engine (Python / Sarvam LLM)
+* **Purpose:** Evaluates prompts and manages the state machine and conversation context map (`app/core/engine.py`).
+* **Multi-Agent Routing Logic:**
   * **Input:** User Utterance.
-  * **Router Processing:** Uses lightweight classifier model to map string -> intent.
-  * Routes to specialized handler (e.g., `HealthcareHandler` class).
+  * **Router Processing:** Uses `RouterAgent` and Sarvam Chat Completion to classify industry intent.
+  * Routes to specialized handler (e.g., `HealthcareAgent`, `SalonAgent`).
 * **Session Management:**
-  * State is serialized and cached in Redis with schema: `call_id: <uuid>, state: { turn_count: int, extracted_entities: {}, current_node: string }`.
+  * State is serialized and cached in Local Redis via `app/db/redis_cache.py`. Schema: `{ "turn_count": int, "assigned_agent": string, "last_response": string }`.
 
-### 2.4 Integration Service (Node.js/Express)
-* **Purpose:** Normalizes internal requests to external provider schemas (e.g., Epic, Mindbody, generic REST CRMs).
-* **Internal API Contracts:**
-  * `POST /integration/calendar/checkAvailability` -> `{ start_time, end_time, resource_id }`
-  * `POST /integration/calendar/createBooking` -> `{ customer_info, slot_id }`
-  * `POST /integration/messaging/sendNotification` -> `{ channel: 'SMS', to: '+1...', template_id }`
+### 2.4 Integration Service (Python / SQLAlchemy)
+* **Purpose:** Normalizes internal requests to the PostgreSQL tables (`app/services/integrations.py`).
+* **Core Functions:**
+  * `def check_calendar_availability(business_id, date, service_type, industry)`
+  * `def create_booking(business_id, caller_number, date, time, service, industry)`
 
 ### 2.5 Audit & Post-Processing Worker (Python/Celery)
 * **Purpose:** Processes heavy offline jobs via Kafka consumer.

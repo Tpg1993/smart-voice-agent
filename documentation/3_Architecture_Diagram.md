@@ -8,8 +8,8 @@ flowchart TB
 
     subgraph Speech_Processing ["2. Speech & Language Center"]
         LD[Language Detection System]
-        STT[Speech-to-Text Controller]
-        TTS[Text-to-Speech Controller]
+        STT[Sarvam AI Indic-ASR]
+        TTS[Sarvam AI Indic-TTS]
     end
 
     subgraph Core_Engine ["3. Core Conversation Engine (Multi-Agent System)"]
@@ -32,9 +32,9 @@ flowchart TB
     end
 
     subgraph Data_Storage ["5. Data & Auditing"]
-        AD[Audio Blob Storage]
-        DB[Metadata & Transcript DB]
-        AN[Analytics & Dashboards Backend]
+        AD[Local Storage Volume]
+        DB[PostgreSQL / Redis Cache]
+        AN[Analytics View]
     end
 
     %% Connections

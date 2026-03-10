@@ -12,17 +12,17 @@ The system follows an event-driven, multi-modular architecture broken into five 
 5. **Data & Storage Layer:** Manages states, logs, historical records, and persistent binary audio object storage.
 
 ## 3. High-Level Data Flow
-1. **Inbound Trigger:** A caller dials the business number. The Telephony Edge (e.g., Twilio) captures the WebRTC audio stream and routes it to the Speech Processing Layer via secured WebSockets.
-2. **Translation:** The STT service buffers and transcribes the audio, emitting text chunks to the Core Logic Engine. Language detection occurs within the first 2 seconds to establish the dialect profile.
-3. **Routing & Triage:** The Triage Module classifies the caller's intent (e.g., Booking vs Support) and routes the context object to the appropriate Industry-Specific Module (e.g., the Healthcare Module or Salon Module).
-4. **Fulfillment:** The specialized module processes the query, referencing the Integration Layer to check availability via the client's CRM.
-5. **Response:** The Core Engine generates a response string, passes it to the TTS synthesizer to generate an audio buffer, and streams it back to the caller through the Telephony Edge.
-6. **Action Execution:** Post-call (or asynchronously during the call), the Integration Layer commits the booking, sends SMS confirmations, and archives the transcript/audio to the Data Layer.
+1. **Inbound Trigger:** A caller dials the business number. The Telephony Edge (e.g., Twilio or local Asterisk PBX) captures the WebRTC audio stream and routes it to the FastAPI application via secured WebSockets.
+2. **Translation:** The audio bytes are sent to Sarvam AI's Indic-ASR to transcribe into text chunks. 
+3. **Routing & Triage:** The Multi-Agent Router evaluates the first utterance using Sarvam AI's Chat Completion API. It classifies the caller's intent and routes the context object to the appropriate Industry-Specific Agent (e.g., Hotel, Education, Salon).
+4. **Fulfillment:** The specialized agent processes the query (using a highly targeted system prompt), referencing the local Integration Layer to check availability via the clinic's CRM or PostgreSQL database.
+5. **Response:** The Core Engine generates a response string, passes it to Sarvam AI's Indic-TTS synthesizer to generate an audio buffer, and streams it back to the caller through the Telephony Edge.
+6. **Action Execution:** The Integration Layer securely commits the booking locally, sends SMS confirmations, and archives the transcript/audio to the Postgres Data Layer.
 
 ## 4. Key Component Responsibilities
-* **API Gateway & Load Balancer:** Entry point for frontend management portals and CRM webhooks. Routes traffic to appropriate internal microservices.
-* **State Management Store (Redis):** Maintains the short-lived session context (e.g., conversation history, user selections, temporary state) for active calls. This is crucial for sub-second latency handling.
-* **Event Bus (Kafka/RabbitMQ):** Handles asynchronous cross-module communication, specifically for post-call processing (e.g., triggering SMS, launching PII redaction jobs, and initiating analytics aggregation).
+* **API Gateway (FastAPI):** Entry point for frontend management portals and telephony WebHooks. Routes traffic to appropriate internal Python logic objects.
+* **State Management Store (Redis - Local Docker):** Maintains the short-lived session context (e.g., conversation history, user selections, temporary state) for active calls. This is crucial for sub-second latency handling.
+* **Event & Storage Bus:** Handles asynchronous cross-module communication specifically for post-call processing (saving the final JSON payload and Call data to the local PostgreSQL instance).
 
 ## 5. Security & Scalability
 * **Scalability:** All core services are containerized (Docker/Kubernetes) and stateless (where state is pushed to Redis), allowing horizontal pod auto-scaling based on simultaneous call volume and CPU utilization.
