@@ -7,15 +7,19 @@ from app.services.speech import SpeechService
 from app.core.security.auth import Token, create_access_token, get_current_user, get_password_hash, verify_password
 from datetime import timedelta
 
+import os
+
 router = APIRouter()
 speech_service = SpeechService()
 engine = ConversationEngine()
 
-# Mock user database for JWT token demonstration
+# Mock user database for JWT token demonstration. 
+# In production, query your PostgreSQL database.
+admin_password = os.getenv("ADMIN_PASSWORD", "secret123")
 fake_users_db = {
     "admin": {
         "username": "admin",
-        "hashed_password": get_password_hash("secret123"),
+        "hashed_password": get_password_hash(admin_password),
     }
 }
 
@@ -43,8 +47,10 @@ async def handle_inbound_call(request: Request):
     form_data = await request.form()
     call_id = form_data.get("CallSid", "CA_TEST_12345")
     
-    # In production, replace the host domain dynamically
-    ws_url = f"wss://your-domain.ngrok.io/api/v1/ws/stream-audio/{call_id}"
+    # Dynamically build the WebSocket URL based on the incoming request Host
+    protocol = "wss" if request.headers.get("x-forwarded-proto", request.url.scheme) == "https" else "ws"
+    host = request.headers.get("host")
+    ws_url = f"{protocol}://{host}/api/v1/ws/stream-audio/{call_id}"
     
     xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
