@@ -22,6 +22,9 @@ This Low Level Design specifies the microservices boundaries, API contracts, dat
 
 ### 2.3 Core Logic Engine (Python / Sarvam LLM)
 * **Purpose:** Evaluates prompts and manages the state machine and conversation context map (`app/core/engine.py`).
+* **NeMo Guardrails Wrapper:**
+  * Uses NVIDIA NeMo `LLMRails` to intercept inputs and outputs.
+  * Colang (`safety.co`) defines explicit flows for jailbreaks, toxicity, and competitor blocking.
 * **Multi-Agent Routing Logic:**
   * **Input:** User Utterance.
   * **Router Processing:** Uses `RouterAgent` and Sarvam Chat Completion to classify industry intent.

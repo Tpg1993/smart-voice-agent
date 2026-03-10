@@ -1,8 +1,12 @@
 # Smart Voice Agent
 
+# Smart Voice Agent
+
 A highly scalable, multi-agent AI voice receptionist system designed to handle inbound and outbound telephone calls using an LLM (Sarvam AI), FastAPI, WebSocket streaming, and Local DB storage.
 
-## Project Documentation
+**Security First:** This codebase actively wraps the Core AI Logic Engine with a Two-Layer security model:
+1. **PII Vault Tokenization:** Real-time scrubbing of PCI/PHI before it ever hits the LLM.
+2. **NVIDIA NeMo Guardrails:** An integrated LLM Firewall utilizing custom `Colang` flows to dynamically intercept and prevent prompt injections, toxicity, and competitor discussions.
 Before diving into the codebase, please review the complete system architecture and data flows in the `documentation/` folder:
 1. `8_High_Level_Design.md`: Core system components and data pipeline.
 2. `3_Architecture_Diagram.md`: Visual Mermaid graph of the infrastructure.
