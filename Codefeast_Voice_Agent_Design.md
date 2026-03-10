@@ -5,21 +5,22 @@
 
 ### 1) Layman Explanation 
 
-Imagine you are running a busy dental clinic, a popular hotel, a bustling salon, a real estate agency, or a school admissions office. The phone is constantly ringing with people trying to book appointments, reserve rooms, schedule site visits, or ask for information. Traditionally, you would need a team of receptionists working round the clock to handle this. 
+A service-based business, such as a dental clinic, hotel, salon, real estate agency, or school admissions office, relies heavily on phone communication. Customers call to book appointments, reserve rooms, schedule site visits, or ask for information. Managing this volume of calls traditionally requires a dedicated team of receptionists working continuously.
 
-The **Codefeast Smart Voice Agent** is a super-powered digital receptionist that never sleeps, never takes a coffee break, and can speak over 30 languages fluently, adapting entirely to your specific service-based industry. 
+The Codefeast Smart Voice Agent is a fully automated digital receptionist. It operates continuously without breaks and communicates fluently in over 30 languages, adapting to the specific needs of various service industries.
 
-Here is how it works using simple analogies:
-* **The Ears and Mouth (Telephony & Speech Gateways):** When a customer calls, the system "hears" them by taking the telephone audio and instantly translating it into text. When the system replies, it takes its text response and turns it into natural, human-sounding speech.
-* **The Brain (Conversation Engine):** This is the core intelligence. Instead of rigidly forcing the caller to "Press 1 for Sales," the Brain actually *understands* the conversation. If a caller says, "I want to book a haircut for Friday," or "I need to schedule a property site visit," the Brain understands the intent and checks the relevant calendar for availability.
-* **The Specialty Desks (Industry-Specific Logic):** The Brain has different "hats" it can wear depending on the business:
-  * **Healthcare (Clinics/Hospitals):** HIPAA compliant, focuses on doctors and medical appointments.
-  * **Education (Schools/Colleges):** Handles student visits and application consultations.
-  * **Hospitality (Hotels):** Manages room reservations, dates, and room types.
-  * **Retail Support (Salons):** Manages service bookings (haircuts, spa treatments) with specific stylists.
-  * **Real Estate:** Schedules property site visits and routes high-value buyer leads to brokers.
-* **The Hands (Integrations):** Once a decision is made, the system uses its "hands" to do the paperwork. It will automatically mark the booking in the clinic's calendar (CRM), send a confirmation text or WhatsApp to the patient, and ping the staff on Slack if a serious emergency is suspected.
-* **The Filing Cabinet (Storage & Auditing):** Every conversation is meticulously written down (Transcripts) and recorded (Audio), then safely locked away so management can review them later to ensure top-notch service quality.
+The system functions through several core components:
+
+* **The Communication Layer:** When a customer calls, the system captures the telephone audio and translates it into text. When responding, it converts its text back into natural, human-sounding speech.
+* **The Core Logic Engine:** This is the central processing unit of the system. Instead of using a rigid menu system (e.g., "Press 1 for Sales"), the engine processes natural conversation. For example, if a caller says, "I want to book a haircut for Friday," or "I need to schedule a property site visit," the engine determines the intent and checks the relevant calendar for availability.
+* **Industry-Specific Modules:** The core engine adapts its behavior based on the specific business it serves:
+  * **Healthcare (Clinics/Hospitals):** Adheres to privacy regulations and handles medical appointments.
+  * **Education (Schools/Colleges):** Manages student visits and admissions inquiries.
+  * **Hospitality (Hotels):** Handles room reservations, checking dates and room types.
+  * **Retail Support (Salons):** Manages service bookings with specific staff members.
+  * **Real Estate:** Schedules property showings and directs high-value inquiries to brokers.
+* **System Integrations:** Once a decision is reached during the call, the system automates the follow-up tasks. It updates the business calendar or booking software, sends a confirmation message to the customer, and alerts staff internally if necessary.
+* **Record Keeping:** Every conversation is transcribed into text and the audio is recorded. These records are securely stored for management to review, ensuring quality of service.
 
 ---
 
@@ -74,26 +75,26 @@ graph TD
 ```mermaid
 flowchart TB
     subgraph Telephony_Layer ["1. Telephony Layer"]
-        TG[Telephony/IVR Gateway<br/>e.g., Twilio]
+        TG[Telephony/IVR Gateway]
     end
 
     subgraph Speech_Processing ["2. Speech & Language Center"]
-        LD[Language Detection & Routing]
-        STT[Speech-to-Text Service]
-        TTS[Text-to-Speech Service]
+        LD[Language Detection System]
+        STT[Speech-to-Text Controller]
+        TTS[Text-to-Speech Controller]
     end
 
     subgraph Core_Engine ["3. Core Conversation Engine (Multi-Agent System)"]
-        RA[Router Agent<br/>(Intent & Language)]
+        RA[Router Module<br/>(Intent Classification)]
         subgraph Industry_Agents
-            HA[Healthcare Agent]
-            EA[Education Agent]
-            HAA[Hospitality Agent]
-            SA[Salon Agent]
-            REA[Real Estate Agent]
+            HA[Healthcare Module]
+            EA[Education Module]
+            HAA[Hospitality Module]
+            SA[Salon Module]
+            REA[Real Estate Module]
         end
-        OA[Outbound Reminders Agent]
-        PM[Prompt & Context Manager]
+        OA[Outbound Reminders Module]
+        PM[Context Management System]
     end
 
     subgraph Integrations_Actions ["4. Integrations & Actions"]
@@ -146,21 +147,21 @@ flowchart TB
 ```
 
 #### Proposed Multi-Agent Architecture
-To handle the complexity of 30+ languages and distinct rules for multiple industries, I propose a **Multi-Agent Architecture** consisting of 7 primary agent types:
+To handle the complexity of 30+ languages and distinct rules for multiple industries, the system utilizes a modular architecture consisting of 7 primary processing units:
 
-1. **The Router/Triage Agent (1)**
-   * **Role:** The entry point for all inbound calls. It introduces itself, determines the caller's language, identifies the core intent (e.g., "I want to book a room" vs "I want to see a doctor"), and routes the conversation to the appropriate specialized agent.
-2. **Industry-Specific Inbound Agents (5 Core Types)**
-   * **Role:** These are deeply specialized LLM agents equipped with specific system prompts and APIs for their industry.
-     * **Healthcare Agent:** Trained on HIPAA compliance, symptom checking, and doctor scheduling.
-     * **Education Agent:** Trained on campus tours, application deadlines, and course guidance.
-     * **Hospitality Agent:** Maps to Property Management Systems (PMS) for tracking room inventory, dates, and VIP statuses.
-     * **Salon/Retail Agent:** Focuses on service types, stylist schedules, and duration of services.
-     * **Real Estate Agent:** Acts as an SDR (Sales Development Rep), qualifying buyer budgets, and scheduling property visits.
-3. **The Outbound/Retention Agent (1)**
-   * **Role:** A dedicated agent triggered by the CRM (not by an inbound call). It wakes up to handle payment reminders, simple recruitment screening, or sending booking confirmation links. It is trained heavily on de-escalation and handling angry customers.
+1. **The Router Unit (1)**
+   * **Role:** The entry point for all inbound calls. It introduces itself, determines the caller's language, identifies the core intent, and routes the conversation to the appropriate specialized processing unit.
+2. **Industry-Specific Inbound Units (5 Core Types)**
+   * **Role:** These are highly specialized processing units equipped with specific instructions and integrations for their respective industries.
+     * **Healthcare Unit:** Configured for HIPAA compliance, privacy, and medical scheduling.
+     * **Education Unit:** Configured to handle campus tours, application deadlines, and course guidance.
+     * **Hospitality Unit:** Integrates with Property Management Systems (PMS) for tracking room inventory and dates.
+     * **Salon/Retail Unit:** Focuses on service types, staff schedules, and duration of services.
+     * **Real Estate Unit:** Automates initial lead screening and property visit scheduling.
+3. **The Outbound/Retention Unit (1)**
+   * **Role:** A dedicated unit triggered automatically by the business software. It initiates calls to handle payment reminders, initial applicant screening, or sending booking confirmation links.
 
-*Note: Depending on scale, a hidden **Human-Handoff/Escalation Agent** runs in the background to monitor sentiment and interrupt the flow if a caller becomes highly distressed, routing them to a live human operator via Slack.*
+*Note: Depending on scale, a background monitoring routine runs continuously to measure caller sentiment and interrupt the flow if a caller becomes highly distressed, routing them to a live human operator.*
 
 ---
 
@@ -186,8 +187,8 @@ To handle the complexity of 30+ languages and distinct rules for multiple indust
 
 **Underlying Primary Assumptions:**
 * **Telephony Cost:** ~$0.015 per minute.
-* **Speech Conversion (STT + TTS):** ~$0.020 per minute combined.
-* **"Brain Compute" (LLM API):** ~$0.005 per minute equivalent (prompt/completion tokens).
+* **Speech Conversion:** ~$0.020 per minute combined.
+* **Processing Cost:** ~$0.005 per minute equivalent.
 * **Total Processing Cost:** ~$0.04 per minute -> ~$0.12 per average 3-minute call.
 * **Storage Cost:** ~$0.023 per GB/month for standard Blob storage.
 * *Note: Infrastructure/Fixed costs scale in tiers based on database throughput and support requirements.*
@@ -195,9 +196,9 @@ To handle the complexity of 30+ languages and distinct rules for multiple indust
 | Cost Component | Small Client (2,000 calls/mo) | Medium Client (20,000 calls/mo) | Large Client (200,000 calls/mo) |
 | :--- | :--- | :--- | :--- |
 | **Call Minutes Cost (Telephony)** | $90 | $900 | $9,000 |
-| **Speech Conversion (STT+TTS)** | $120 | $1,200 | $12,000 |
-| **"Brain Compute" Cost (LLM)** | $30 | $300 | $3,000 |
-| **Storage Cost (Audio + Transcripts)**<br/>*(Assumes 3MB/call accumulated)* | ~$0.15 (6 GB baseline) | ~$1.50 (60 GB baseline) | ~$15.00 (600 GB baseline) |
+| **Speech Conversion** | $120 | $1,200 | $12,000 |
+| **Processing Cost** | $30 | $300 | $3,000 |
+| **Storage Cost** | ~$0.15 (6 GB baseline) | ~$1.50 (60 GB baseline) | ~$15.00 (600 GB baseline) |
 | **Support/Monitoring/Infra Cost** | $150 (Basic Cloud Infra) | $500 (Dedicated DBs, Alerts) | $2,000 (HA Setup, Premium Support) |
 | **Total Estimated Monthly Cost** | **~$390** | **~$2,901** | **~$26,015** |
 
@@ -223,9 +224,9 @@ To handle the complexity of 30+ languages and distinct rules for multiple indust
 
 | Timeframe | Key Milestone / Goal | MVP Features to Launch | Target Market / Language |
 | :--- | :--- | :--- | :--- |
-| **Week 1-2** | **Core Execution Engine** | • Telephony gateway setup (Twilio/Vonage).<br/>• STT and TTS pipeline integration.<br/>• Basic LLM prompt engineering.<br/>• Audio blob storage capability. | English only (Internal Testing). |
-| **Month 1** | **Pilot-Ready (Inbound Only)** | • CRM calendar read/write integration.<br/>• Initial Industry Modules (Healthcare, Salons, Hotels, Real Estate, Education).<br/>• Call transcript storage.<br/>• Basic Slack notification on call complete. | 1 Specific Region (e.g., USA) / English & Spanish. |
-| **Month 2** | **Outbound & Scale Expansion** | • Automated outgoing calls (Payment reminders).<br/>• Human handoff logic.<br/>• WhatsApp/SMS post-call summary integration. | Adding India (Hindi/English mix) and European markets (German, Spanish). |
-| **Month 3** | **Scale-Ready & Analytics** | • Redaction/PII Scrubber for compliance.<br/>• Dashboard UI for clients to see success rates.<br/>• Self-serve portal for new businesses. | Global / Multi-lingual (28+ languages). |
+| **Week 1-2** | **Core Execution Engine** | Telephony gateway setup; Speech pipeline integration; Initial processing logic; Audio storage capability. | English only |
+| **Month 1** | **Pilot-Ready (Inbound Only)** | Booking integration; Initial Industry Modules (Healthcare, Salons, Hotels, Real Estate, Education); Call transcript storage; Notification system on call completion. | 1 Specific Region / English & Spanish |
+| **Month 2** | **Outbound & Scale Expansion** | Automated outgoing calls; Escalation logic; Post-call summary integration. | Adding European markets and India |
+| **Month 3** | **Scale-Ready & Analytics** | Redaction/Scrubber for compliance; Dashboard UI for clients to see success rates; Self-serve portal for new businesses. | Global / Multi-lingual |
 
 ---
