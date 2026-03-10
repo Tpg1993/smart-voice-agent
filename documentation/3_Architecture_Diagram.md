@@ -13,7 +13,7 @@ flowchart TB
     end
 
     subgraph Core_Engine ["3. Core Conversation Engine (Multi-Agent System)"]
-        RA[Router Module<br/>(Intent Classification)]
+        RA["Router Module<br/>(Intent Classification)"]
         subgraph Industry_Agents
             HA[Healthcare Module]
             EA[Education Module]
