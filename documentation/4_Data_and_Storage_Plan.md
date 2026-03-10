@@ -13,3 +13,7 @@
 | **Summary Notes** | Extracted Key-Value points (JSON) | ~2 KB | 3-5 years | Relational DB (PostgreSQL) - indexed for fast searching. |
 | **Booking/Action Metadata** | Timestamps, IDs, Status codes | ~1 KB | 3-5 years (or perpetual if anonymized) | Relational DB (PostgreSQL). |
 | **Agent Logs** | System execution logs, latency metrics | ~5 KB | 30-90 days | Log Management Service (e.g., Elasticsearch, AWS CloudWatch). |
+
+### 4.1 Auditing & Compliance Measures
+1. **PII Redaction (Data Scrubber):** A post-call background worker is responsible for running a regex/NER scrubber over the transcript JSON. It replaces sensitive information (like Credit Card numbers, SSNs, and PHI) with `[REDACTED]` *before* it is saved to long-term Postgres storage. Currently, this worker runs asynchronously using Celery.
+2. **Security at Rest:** All Database data (Audio Blob Volume and PostgreSQL Metadata) is encrypted at rest using AES-256. Access is restricted via strict Role-Based Access Control (RBAC) to ensure employees cannot arbitrarily listen to raw audio recordings without proper auditing trails.
