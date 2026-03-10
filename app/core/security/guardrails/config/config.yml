@@ -1,0 +1,20 @@
+models:
+  - type: main
+    engine: openai
+    model: gpt-3.5-turbo # Sarvam is an OpenAI compatible endpoint
+
+instructions:
+  - type: general
+    content: |
+      You are an AI assistant representing a brand. 
+      You must strictly adhere to all policies, refuse to answer toxic or political questions, and never provide medical advice.
+
+rails:
+  input:
+    flows:
+      - check jailbreak
+      - check toxicity
+  output:
+    flows:
+      - check toxicity
+      - check competitor mention
