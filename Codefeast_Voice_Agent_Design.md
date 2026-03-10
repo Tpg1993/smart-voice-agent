@@ -26,46 +26,64 @@ The system functions through several core components:
 
 ### 2) End-to-End Flowcharts
 
-#### Inbound Call Booking Flow (Generic Service-Industry Example)
-*This flow dynamically adapts based on the industry (Clinic Appointment, Hotel Room, Salon Service, School Consultation, or Real Estate Visit).*
+#### Inbound Call Booking Flow (e.g., Dental Clinic Appointment)
 ```mermaid
 graph TD
-    A([Customer Calls Business]) --> B[Telephony Gateway / IVR]
-    B --> C{Play Greeting & Ask Intent}
-    C --> D[Customer: 'I want to book an appointment / reserve a room / schedule a visit']
-    D --> E[Speech-to-Text & Language Detection]
-    E --> F[Conversation Engine / Brain]
-    F --> G{Ask for Specific Details:<br/>Date, Time, Service/Room Type}
-    G --> H[Customer provides details]
-    H --> I[Check CRM Calendar for Availability]
-    I -- Slot Unavailable --> J[Propose Alternative Times]
-    J --> H
-    I -- Slot Available --> K[Confirm Booking & Collect Core Info]
-    K --> L[Update CRM / Database]
-    L --> M[Send SMS/WhatsApp Confirmation]
-    M --> N[Log Call Transcript & Recording]
-    N --> O([End Call])
+    %% Standard Flowchart Symbols: 
+    %% ([...]) = Start/End Terminal
+    %% [...] = Process
+    %% { ... } = Decision
+    %% [/ ... /] = Input/Output
+    %% [( ... )] = Database
+    
+    Start([Start: Customer Calls Dental Clinic]) --> Receive[Receive Call via Telephony Gateway]
+    Receive --> PlayGreeting[/Play Greeting & Ask Intent/]
+    PlayGreeting --> ListenInput[/Receive Customer Audio Response/]
+    ListenInput --> SpeechToText[Translate Speech to Text]
+    SpeechToText --> ProcessIntent[Analyze Intent in Core Logic Engine]
+    ProcessIntent --> ExtractInfo[Extract Desired Date, Time, and Reason]
+    ExtractInfo --> QueryDB[(Query Clinic CRM Calendar)]
+    QueryDB --> CheckAvailability{Is Time Slot Available?}
+    
+    CheckAvailability -- No --> ProposeAlternative[/Propose Alternative Times/]
+    ProposeAlternative --> ListenInput
+    
+    CheckAvailability -- Yes --> RequestConfirmation[/Request Final Confirmation/]
+    RequestConfirmation --> ListenConfirmation[/Receive Customer Confirmation/]
+    ListenConfirmation --> UpdateDB[(Update Clinic CRM Calendar)]
+    UpdateDB --> SendSMS[/Send SMS Appointment Confirmation/]
+    SendSMS --> EndCall([End: Call Disconnected])
 ```
 
 #### Outbound Call Flow (e.g., Payment Reminder & Escalation)
 ```mermaid
 graph TD
-    A([Trigger: Payment Overdue Notification]) --> B[CRM Sends Request to Voice Agent]
-    B --> C[Fetch Customer Details & Outbound Number]
-    C --> D[Telephony Gateway Dials Customer]
-    D -- No Answer --> E[Log 'No Answer', Reschedule]
-    D -- Answered --> F{Play Greeting & State Purpose}
-    F --> G[Customer Responds]
-    G --> H[Speech-to-Text Processing]
-    H --> I[Conversation Engine Analyzes Status]
-    I -- Customer Promises to Pay --> J[Send Payment Link via SMS]
-    I -- Customer Refuses/Disputes --> K{Customer asks for Human?}
-    K -- Yes --> L[Transfer Call to Human Agent]
-    K -- No --> M[Log Dispute in CRM, Flag for Review]
-    L --> N[Send Slack Notification to Support Team]
-    J --> O[Log Call Details & End]
-    M --> O([End Call])
-    N --> O
+    %% Standard Flowchart Symbols Used here
+    Start([Start: Payment Overdue Trigger]) --> FetchData[(Fetch Customer Contact from CRM)]
+    FetchData --> InitCall[Initiate Outbound Call via Telephony]
+    InitCall --> CallConnected{Does Customer Answer?}
+    
+    CallConnected -- No --> LogMissed[(Log Missed Call & Reschedule)]
+    LogMissed --> EndCallMissed([End: Call Unanswered])
+    
+    CallConnected -- Yes --> PlayGreeting[/Play Greeting & State Overdue Amount/]
+    PlayGreeting --> ListenInput[/Receive Customer Audio Response/]
+    ListenInput --> SpeechToText[Translate Speech to Text]
+    SpeechToText --> AnalyzeResponse[Analyze Response in Core Logic Engine]
+    AnalyzeResponse --> CheckEscalation{Did Customer Ask for Human?}
+    
+    CheckEscalation -- Yes --> TransferOperation[Transfer Line to Live Receptionist]
+    TransferOperation --> PingSlack[/Send Alert to Support Channel/]
+    PingSlack --> EndCallEscalated([End: Call Handed Off])
+    
+    CheckEscalation -- No --> CheckPromise{Did Customer Promise to Pay?}
+    
+    CheckPromise -- Yes --> SendLink[/Send Payment Link via SMS/]
+    SendLink --> UpdateStatus[(Update CRM Status to Pending Payment)]
+    UpdateStatus --> EndCallSuccess([End: Call Successful])
+    
+    CheckPromise -- No --> LogDispute[(Log Dispute/Refusal in CRM)]
+    LogDispute --> EndCallDispute([End: Disputed])
 ```
 
 ---
