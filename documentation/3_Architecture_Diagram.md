@@ -19,74 +19,54 @@ flowchart TB
             EA[Education Module]
             HAA[Hospitality Module]
             SA[Salon Module]
-            REA[Real Estate Module]
-        end
-        OA[Outbound Reminders Module]
-        PM[Context Management System]
+graph TD
+    %% Define Styles
+    classDef user fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef telephony fill:#ffebee,stroke:#d32f2f,stroke-width:2px;
+    classDef speech fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+    classDef core fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    classDef integrations fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+    %% 1. The Real World
+    Caller((Customer on<br>Phone Muted)):::user
+
+    %% 2. Telephony Sub-System
+    subgraph Telephony [1. Telephony Edge Layer]
+        PBX[Twilio / Asterisk PBX]:::telephony
     end
 
-    subgraph Integrations_Actions ["4. Integrations & Actions"]
-        CRM[CRM Update & Sync Module]
-        SLK[Slack Notification Service]
-        MSG[Email/WhatsApp/SMS Gateway]
+    %% 3. Speech Sub-System
+    subgraph AI_Speech [2. Speech Translation Layer]
+        ASR[Sarvam AI Indic-ASR<br>Speech to Text]:::speech
+        TTS[Sarvam AI Indic-TTS<br>Text to Speech]:::speech
     end
 
-    subgraph Data_Storage ["5. Data & Auditing"]
-        AD[Local Storage Volume]
-        DB[PostgreSQL / Redis Cache]
-        AN[Analytics View]
+    %% 4. Core Brain Sub-System
+    subgraph Brain [3. Core Multi-Agent Logic]
+        Router[Master Router Agent]:::core
+        Specialists[Industry Specialists<br>Hotel / Salon / Edu / Clinic]:::core
     end
 
-    %% Connections
-    TG -->|Audio Stream| LD
-    LD -->|Set Context| STT
-    STT -->|Transcribed Text| RA
-    
-    RA -->|Inbound - Appt/Symptom| HA
-    RA -->|Inbound - Campus Visit| EA
-    RA -->|Inbound - Room Booking| HAA
-    RA -->|Inbound - Haircut/Spa| SA
-    RA -->|Inbound - Site Visit| REA
-    RA -->|Outbound Trigger| OA
-    
-    HA <-->|Maintain State| PM
-    EA <-->|Maintain State| PM
-    HAA <-->|Maintain State| PM
-    SA <-->|Maintain State| PM
-    REA <-->|Maintain State| PM
-    OA <-->|Maintain State| PM
+    %% 5. Action Sub-System
+    subgraph Actions [4. Database & Integrations]
+        CRM[(Business CRM / Postgres)]:::integrations
+        SMS[SMS & Notification Tools]:::integrations
+    end
 
-    HA -->|Response Text| TTS
-    EA -->|Response Text| TTS
-    HAA -->|Response Text| TTS
-    SA -->|Response Text| TTS
-    REA -->|Response Text| TTS
-    OA -->|Response Text| TTS
-
-    TTS -->|Synthesized Audio| TG
+    %% Workflow Connections
+    Caller <-->|Standard Phone Call| PBX
     
-    HA & EA & HAA & SA & REA & OA -->|Execute Action| CRM
-    HA & EA & HAA & SA & REA & OA -->|Alert Trigger| SLK
-    HA & EA & HAA & SA & REA & OA -->|Send Link| MSG
-
-    TG -.->|Save Recording| AD
-    RA & HA & EA & HAA & SA & REA & OA -.->|Save Transcripts & Summaries| DB
-    DB <--> AN
+    PBX -->|Audio Stream| ASR
+    ASR -->|Text Utterance| Router
+    
+    Router -->|If specialized question| Specialists
+    Specialists -->|Formulate Answer| TTS
+    
+    Specialists <-->|Check Booking Slots| CRM
+    Specialists -->|Trigger Confirmation Text| SMS
+    
+    TTS -->|Play audio back| PBX
 ```
 
-#### Proposed Multi-Agent Architecture
-To handle the complexity of 30+ languages and distinct rules for multiple industries, the system utilizes a modular architecture consisting of 7 primary processing units:
-
-1. **The Router Unit (1)**
-   * **Role:** The entry point for all inbound calls. It introduces itself, determines the caller's language, identifies the core intent, and routes the conversation to the appropriate specialized processing unit.
-2. **Industry-Specific Inbound Units (5 Core Types)**
-   * **Role:** These are highly specialized processing units equipped with specific instructions and integrations for their respective industries.
-     * **Healthcare Unit:** Configured for HIPAA compliance, privacy, and medical scheduling.
-     * **Education Unit:** Configured to handle campus tours, application deadlines, and course guidance.
-     * **Hospitality Unit:** Integrates with Property Management Systems (PMS) for tracking room inventory and dates.
-     * **Salon/Retail Unit:** Focuses on service types, staff schedules, and duration of services.
-     * **Real Estate Unit:** Automates initial lead screening and property visit scheduling.
-3. **The Outbound/Retention Unit (1)**
-   * **Role:** A dedicated unit triggered automatically by the business software. It initiates calls to handle payment reminders, initial applicant screening, or sending booking confirmation links.
 
 *Note: Depending on scale, a background monitoring routine runs continuously to measure caller sentiment and interrupt the flow if a caller becomes highly distressed, routing them to a live human operator.*
